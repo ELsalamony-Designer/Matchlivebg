@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signal Split Screen</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; font-family: monospace; background: #000; color: white; }
+    .container { display: flex; height: 100%; width: 100%; }
+    .side {
+      width: 50%;
+      position: relative;
+      display: flex;
+      flex-direction: column; /* Changed to column to stack name and status */
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      transition: background 0.3s, filter 0.3s;
+    }
+    .side .name {
+      font-size: 1.2em; /* Slightly smaller for the name */
+      margin-bottom: 10px; /* Space between name and status */
+    }
+    .side .status {
+      font-size: 0.8em; /* Smaller for the status */
+      opacity: 0; /* Initially hidden */
+      transition: opacity 0.5s, transform 0.5s;
+    }
+    .side .status.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .control-panel {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 10;
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .cmd-bar {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: #111;
+      padding: 10px;
+    }
+    input {
+      width: 100%;
+      background: black;
+      color: lime;
+      border: none;
+      font-size: 1.2em;
+      outline: none;
+      font-family: monospace;
+    }
+    .glitch {
+      background: repeating-linear-gradient(45deg, #000, #000 5px, #111 5px, #111 10px);
+      animation: glitch 1s infinite;
+    }
+    @keyframes glitch {
+      0%, 100% { filter: hue-rotate(0deg); }
+      50% { filter: hue-rotate(30deg); }
+    }
+    .fade-in-status { /* New animation for status */
+        animation: fadeInStatus 1s forwards;
+    }
+    @keyframes fadeInStatus {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="control-panel">
+    <h3>Commands:</h3>
+    <p>/sad /happy /wanna play /tired /angry</p>
+    <p>/bgc green /bgc red /bgc blue /bgc black /bgc pink /bgc orange</p>
+  </div>
+
+  <div class="container">
+    <div id="hoah" class="side glitch">
+      <span class="name">NO SIGNAL</span>
+      <div class="status"></div>
+    </div>
+    <div id="wan" class="side glitch">
+      <span class="name">NO SIGNAL</span>
+      <div class="status"></div>
+    </div>
+  </div>
+
+  <div class="cmd-bar">
+    <input type="text" id="cmdInput" placeholder="Type command here...">
+  </div>
+
+  <script>
+    const hoah = document.getElementById('hoah');
+    const wan = document.getElementById('wan');
+    const cmdInput = document.getElementById('cmdInput');
+
+    let me = null; // Stores the current user's ID ("hoah" or "wan")
+
+    const passwords = {
+      "hoah123": "hoah",
+      "wan321": "wan"
+    };
+
+    while (!me) {
+      let pass = prompt("Enter your password");
+      if (passwords[pass]) {
+        me = passwords[pass];
+        // Set the name of the logged-in user
+        document.getElementById(me).querySelector('.name').textContent = me.toUpperCase();
+        document.getElementById(me).classList.remove("glitch");
+      } else {
+        alert("Wrong password!");
+      }
+    }
+
+    const messages = {
+      "/sad": "😢 Feeling Sad",
+      "/happy": "😊 Feeling Happy",
+      "/wanna play": "🎮 Wanna Play?",
+      "/tired": "😴 So Tired...",
+      "/angry": "😡 Angry Mood"
+    };
+
+    const colors = {
+      "red": "#ff1a1a",
+      "green": "#00cc66",
+      "blue": "#0099ff",
+      "black": "#000000",
+      "pink": "#ff66cc",
+      "orange": "#ff9900"
+    };
+
+    cmdInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        const cmd = cmdInput.value.trim().toLowerCase();
+        cmdInput.value = "";
+
+        const mySide = document.getElementById(me);
+        const myStatusDiv = mySide.querySelector('.status');
+
+        if (cmd.startsWith("/bgc ")) {
+          const color = cmd.split(" ")[1];
+          if (colors[color]) {
+            mySide.style.background = colors[color];
+          }
+        } else if (messages[cmd]) {
+          // Clear any previous animation to ensure it plays again
+          myStatusDiv.classList.remove("fade-in-status");
+          // Force reflow to restart animation (important for re-triggering)
+          void myStatusDiv.offsetWidth; 
+          
+          myStatusDiv.textContent = messages[cmd];
+          myStatusDiv.classList.add("fade-in-status");
+          // Removed the setTimeout here, so the status will remain
+        }
+      }
+    });
+  </script>
+</body>
+</html>
